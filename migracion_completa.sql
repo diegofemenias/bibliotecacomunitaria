@@ -226,6 +226,7 @@ CREATE TABLE IF NOT EXISTS reservas (
     fecha_vencimiento DATE NOT NULL,
     estado ENUM('Pendiente', 'Completada', 'Cancelada', 'Vencida') DEFAULT 'Pendiente',
     fecha_notificacion DATE NULL,
+    ip_address VARCHAR(45) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (libro_id) REFERENCES libros(id) ON DELETE CASCADE,
@@ -233,7 +234,8 @@ CREATE TABLE IF NOT EXISTS reservas (
     INDEX idx_libro (libro_id),
     INDEX idx_usuario (usuario_id),
     INDEX idx_estado (estado),
-    INDEX idx_fecha_vencimiento (fecha_vencimiento)
+    INDEX idx_fecha_vencimiento (fecha_vencimiento),
+    INDEX idx_ip_fecha (ip_address, fecha_reserva)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================

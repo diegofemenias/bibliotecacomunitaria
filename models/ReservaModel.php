@@ -9,7 +9,7 @@ class ReservaModel extends Model {
         parent::__construct('reservas');
     }
     
-    public function crearReserva($libroId, $cedula) {
+    public function crearReserva($libroId, $cedula, $ipAddress = null) {
         $this->db->beginTransaction();
         
         try {
@@ -39,15 +39,37 @@ class ReservaModel extends Model {
                 throw new Exception("Ya tiene una reserva pendiente para este libro");
             }
             
+            // Validar restricción de IP solo si se proporciona una IP (reservas públicas)
+            // Las reservas desde admin no pasan IP, por lo que no se validan
+            if ($ipAddress && !empty($ipAddress)) {
+                $stmt = $this->db->prepare("
+                    SELECT id FROM reservas 
+                    WHERE ip_address = ? 
+                    AND DATE(fecha_reserva) = CURDATE()
+                    AND estado = 'Pendiente'
+                ");
+                $stmt->execute([$ipAddress]);
+                if ($stmt->fetch()) {
+                    throw new Exception("Solo se permite una reserva por día desde este dispositivo. Puede realizar otra reserva mañana o cuando complete la reserva actual.");
+                }
+            }
+            
             // Crear reserva
             $fechaVencimiento = date('Y-m-d', strtotime('+' . DIAS_VALIDEZ_RESERVA . ' days'));
-            $reservaId = $this->create([
+            $dataReserva = [
                 'libro_id' => $libroId,
                 'usuario_id' => $usuarioId,
                 'fecha_reserva' => date('Y-m-d'),
                 'fecha_vencimiento' => $fechaVencimiento,
                 'estado' => 'Pendiente'
-            ]);
+            ];
+            
+            // Solo agregar IP si se proporciona (reservas públicas)
+            if ($ipAddress && !empty($ipAddress)) {
+                $dataReserva['ip_address'] = $ipAddress;
+            }
+            
+            $reservaId = $this->create($dataReserva);
             
             if (!$reservaId) {
                 throw new Exception("Error al crear la reserva");

@@ -40,3 +40,13 @@ function sanitize($data) {
     return htmlspecialchars(strip_tags(trim($data)));
 }
 
+// Helper para obtener la IP del cliente
+function getClientIp() {
+    // Manejar proxies y load balancers
+    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        return trim($ips[0]);
+    }
+    return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+}
+

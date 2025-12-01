@@ -37,7 +37,10 @@ try {
         redirect('index.php');
     }
     
-    $reservaId = $reservaModel->crearReserva($libroId, $cedula);
+    // Obtener la IP del cliente para validación
+    $ipAddress = getClientIp();
+    
+    $reservaId = $reservaModel->crearReserva($libroId, $cedula, $ipAddress);
     $_SESSION['success'] = 'Reserva realizada exitosamente. Tiene ' . DIAS_VALIDEZ_RESERVA . ' días para retirar el libro.';
     
 } catch (Exception $e) {
